@@ -1,0 +1,15 @@
+# Folder dataset
+/datasets/
+/data/
+
+# Format file besar
+*.zip
+*.rar
+*.csv
+*.mp3
+*.wav
+*.json
+# Folder environment (python)
+venv/
+__pycache__/
+.env
