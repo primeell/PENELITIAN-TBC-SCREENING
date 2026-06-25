@@ -1,0 +1,18 @@
+{
+    "dataset_source": "TBscreen clinical cough database",
+    "audio_processing": {
+        "sampling_rate_hz": 44100,
+        "duration_seconds": 1.0,
+        "channels": "mono",
+        "cwt_wavelet": "cmor1.5-1.0",
+        "cwt_scales": 100
+    },
+    "train_augmentations": {
+        "noise_mixing": "Class-balanced (10 dB SNR mixed with DKITCHEN, NPARK, OHALLWAY)",
+        "acoustic_perturbation": "Healthy class pitch shift and time stretch"
+    },
+    "validation_and_testing": {
+        "evaluation_mode": "Clean-only (unaugmented)",
+        "patient_level_aggregation": "Majority voting / thresholding"
+    }
+}

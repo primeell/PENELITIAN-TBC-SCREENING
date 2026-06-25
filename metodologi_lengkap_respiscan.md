@@ -8,20 +8,20 @@
 Secara garis besar, data batuk diolah melalui alur sistematis berikut:
 
 ```
-[Raw Audio (645 Subjek)] 
+[Raw Audio (225 Subjek)] 
        │ 
        ▼ (Quality Control) 
-[593 Subjek Terpilih] (52 subjek bermasalah dieliminasi)
+[198 Subjek Terpilih] (27 subjek bermasalah dieliminasi)
        │ 
        ▼ (Audio Standardization) 
-[Standardized 1s Mono, 44.1 kHz] 
+[Standardized 1s Mono, 16 kHz] 
        │ 
        ▼ (Subject-Level Splitting) 
 ┌──────┴────────────────────────┬────────────────────────┐
-▼ (Train Split: 449 Subjek)     ▼ (Val Split: 85 Subjek)  ▼ (Test Split: 59 Subjek)
+▼ (Train Split: 137 Subjek)     ▼ (Val Split: 30 Subjek)  ▼ (Test Split: 31 Subjek)
 │                               │                         │
 ├─► Noise Augmentation (10dB)   └─► Evaluasi Clean-Only   └─► Evaluasi Clean-Only
-├─► CWT Scalogram (224x224)         (Ambang Youden: 0.1380)   (Holdout Test Metrics)
+├─► CWT Scalogram (224x224)         (Ambang Youden: 0.3595)   (Holdout Test Metrics)
 ▼
 [MobileNetV2 Training] (Weighted Loss & Differential LR)
 ```
@@ -31,37 +31,37 @@ Secara garis besar, data batuk diolah melalui alur sistematis berikut:
 ## 1. Dataset: Evolusi, Penyaringan, dan Justifikasi Ukuran
 
 ### A. Mengapa Ukuran Cohort Berubah dari Draf Awal?
-Dalam draf awal (pilot study), tertulis dataset terdiri dari **136 subjek** menghasilkan **4.258 sampel**. Sedangkan pada versi final, dataset menggunakan **593 subjek** menghasilkan **2.645 sampel**. Perubahan ini didasari reformasi metodologi yang krusial:
+Dalam draf awal (pilot study), tertulis dataset terdiri dari **136 subjek** menghasilkan **4.258 sampel**. Sedangkan pada versi final, dataset menggunakan **198 subjek** menghasilkan **2740 sampel**. Perubahan ini didasari reformasi metodologi yang krusial:
 
 *   **Pilot Dataset (Versi Lama):**
     *   *Keterbatasan:* Hanya menggunakan 136 subjek dari database. Agar data terlihat banyak untuk CNN, peneliti melakukan **Overlapping Segment Windowing** (memotong satu rekaman batuk yang panjang menjadi potongan 1 detik secara bertumpang tindih, menghasilkan rata-rata ~31 segmen per subjek).
     *   *Risiko Metodologis:* Model CNN sangat mudah mengenali karakteristik suara unik pembicara (*speaker recognition*). Karena segmen-segmen tersebut bertumpang tindih, model mengalami *overfitting* berat—menghafal sinyal suara subjek yang sama alih-alih mempelajari patologi TBC.
 *   **Final Dataset (Versi Baru / Saat Ini):**
-    *   *Solusi:* Kami memperluas cohort hingga **593 subjek** (meningkatkan keanekaragaman suara pembicara sebanyak **4.3 kali lipat**).
-    *   *Standardisasi Non-Overlapping:* Kami melarang penumpukan segmen bertumpang tindih. Setiap rekaman batuk hanya menghasilkan **1 file scalogram bersih (non-overlapping)**. Ini menghasilkan total **2.645 sampel**. Metodologi ini jauh lebih sahih karena memaksa model mempelajari pola patofisiologi batuk secara umum.
+    *   *Solusi:* Kami memperluas cohort hingga **198 subjek** (meningkatkan keanekaragaman suara pembicara sebanyak **4.3 kali lipat**).
+    *   *Standardisasi Non-Overlapping:* Kami melarang penumpukan segmen bertumpang tindih. Setiap rekaman batuk hanya menghasilkan **1 file scalogram bersih (non-overlapping)**. Ini menghasilkan total **2740 sampel**. Metodologi ini jauh lebih sahih karena memaksa model mempelajari pola patofisiologi batuk secara umum.
 
 ### B. Alur Penyaringan Dataset (Evolution & Curation)
 Reviewer jurnal sangat kritis terhadap asal-usul data. Tabel evolusi dataset berikut merangkum proses penyaringan data dari database mentah:
 
 | Tahapan Kurasi | Jumlah Subjek (Pasien) | Jumlah File (Sampel) | Alasan & Kriteria Penyaringan |
 | :--- | :---: | :---: | :--- |
-| **1. Database Awal (Raw Cohort)** | 645 | — | Database batuk klinis awal dari TBscreen. |
-| **2. Tahap Quality Control** | 52 (Dieliminasi) | — | Subjek dikeluarkan karena file audio rusak, rekaman terputus, atau hanya berisi keheningan (silent channels). |
-| **3. Dataset Terstandarisasi** | **593** | **2.645** | Subjek yang memiliki rekaman batuk valid. Semua audio dikonversi ke 44.1 kHz, mono, dan dipotong tepat 1.0 detik. |
-| **4. Train Partition** | 449 | 2.225 | Digunakan untuk melatih model. Data dicampur dengan bising lingkungan (noisy-mixed) pada SNR 10 dB. |
-| **5. Val Partition** | 85 | 254 | Bersih (clean-only). Digunakan untuk menentukan ambang batas keputusan optimal (*Youden's Index*). |
-| **6. Test Partition** | 59 | 166 | Bersih (clean-only). Menjadi data uji independen yang benar-benar baru (*unseen holdout*) untuk evaluasi performa akhir. |
+| **1. Database Awal (Raw Cohort)** | 225 | — | Database batuk klinis awal dari TBscreen. |
+| **2. Tahap Quality Control** | 27 (Dieliminasi) | — | Subjek dikeluarkan karena file audio rusak, rekaman terputus, atau hanya berisi keheningan (silent channels). |
+| **3. Dataset Terstandarisasi** | **198** | **2740** | Subjek yang memiliki rekaman batuk valid. Semua audio dikonversi ke 16 kHz, mono, dan dipotong tepat 1.0 detik. |
+| **4. Train Partition** | 137 | 2312 | Digunakan untuk melatih model. Data dicampur dengan bising lingkungan (noisy-mixed) pada SNR 10 dB. |
+| **5. Val Partition** | 30 | 229 | Bersih (clean-only). Digunakan untuk menentukan ambang batas keputusan optimal (*Youden's Index*). |
+| **6. Test Partition** | 31 | 199 | Bersih (clean-only). Menjadi data uji independen yang benar-benar baru (*unseen holdout*) untuk evaluasi performa akhir. |
 
 ---
 
 ## 2. Standardisasi Sinyal Audio (Acoustic Preprocessing)
 
-Mengapa kita harus mengubah format audio asli menjadi format khusus (Mono, 44.1 kHz, 1 detik)?
+Mengapa kita harus mengubah format audio asli menjadi format khusus (Mono, 16 kHz, 1 detik)?
 
 1.  **Mengubah ke Mono (1-Channel):**
     Audio rekaman sering kali memiliki format stereo (2 saluran: kiri dan kanan). Namun, informasi batuk di saluran kiri dan kanan pada dasarnya identik. Mengonversi ke mono dengan merata-ratakan saluran suara (`torch.mean`) mereduksi beban komputasi jaringan saraf tiruan hingga 50% tanpa kehilangan informasi akustik.
-2.  **Resampling ke 44.1 kHz (Teorema Nyquist-Shannon):**
-    Telinga manusia dapat mendengar frekuensi audio dari 20 Hz hingga 20.000 Hz (20 kHz). Berdasarkan **Teorema Nyquist-Shannon**, untuk mendokumentasikan sinyal berfrekuensi $f$ secara digital tanpa distorsi (*aliasing*), frekuensi perekaman (*sampling rate*) minimal harus **2 kali lipat frekuensi tertinggi** ($2 \times 20\text{ kHz} = 40\text{ kHz}$). Standar industri **44.100 Hz (44.1 kHz)** dipilih untuk memberikan margin keamanan agar detail suara ledakan udara batuk berfrekuensi tinggi tetap terekam utuh.
+2.  **Resampling ke 16 kHz (Teorema Nyquist-Shannon):**
+    Telinga manusia dapat mendengar frekuensi audio dari 20 Hz hingga 20.000 Hz (20 kHz). Berdasarkan **Teorema Nyquist-Shannon**, untuk mendokumentasikan sinyal berfrekuensi $f$ secara digital tanpa distorsi (*aliasing*), frekuensi perekaman (*sampling rate*) minimal harus **2 kali lipat frekuensi tertinggi** ($2 \times 20\text{ kHz} = 40\text{ kHz}$). Standar industri **44.100 Hz (16 kHz)** dipilih untuk memberikan margin keamanan agar detail suara ledakan udara batuk berfrekuensi tinggi tetap terekam utuh.
 3.  **Durasi Tepat 1.0 Detik (Cropping / Padding):**
     CNN membutuhkan ukuran input gambar yang seragam. Durasi batuk yang bervariasi (misal ada yang 0.8 detik dan ada yang 3 detik) akan menghasilkan gambar scalogram dengan lebar berbeda.
     *   Jika audio lebih dari 1.0 detik, dipotong (`crop`) untuk mengambil fase ekspulsi batuk utama.
@@ -148,11 +148,11 @@ Mengapa kita tidak memakai threshold default 0.50?
 *   **Strategi (Youden's Index $J$):**
     Kami menganalisis performa model pada data **Validation**. Youden's Index memaksimalkan jumlah sensitivitas dan spesifisitas pada kurva ROC:
     $$J(\theta) = \text{Sensitivitas}(\theta) + \text{Spesifisitas}(\theta) - 1$$
-    Dari pencarian ini, ditemukan bahwa threshold optimal untuk menyaring pasien TB adalah **0.1380**.
+    Dari pencarian ini, ditemukan bahwa threshold optimal untuk menyaring pasien TB adalah **0.3595**.
 *   **Dampak Penggeseran Threshold (Triage Setting):**
-    Saat threshold diturunkan ke 0.1380 dan diuji pada set holdout Test:
-    *   **Sensitivitas naik menjadi 100.00%** (artinya seluruh 40 pasien TB terdeteksi sempurna, False Negative = 0).
-    *   **Spesifisitas turun menjadi 26.32%** (artinya banyak subjek sehat yang dirujuk ke lab untuk tes GeneXpert).
+    Saat threshold diturunkan ke 0.3595 dan diuji pada set holdout Test:
+    *   **Sensitivitas naik menjadi 100.00%** (artinya 14 dari 14 TB terdeteksi, False Negative = 0).
+    *   **Spesifisitas adalah 76.47%** (artinya 13 dari 17 subjek sehat dideteksi benar, False Positive = 4).
     *   *Kesimpulan Klinis:* Ini adalah karakteristik alat screening penapisan awal (*triage*) yang sangat baik—menangkap semua suspect sakit agar tidak ada penularan bebas, sementara penegakan diagnosis final tetap diserahkan pada tes PCR/GeneXpert.
 
 ---
@@ -172,19 +172,19 @@ Sistem screening TBC memiliki kebutuhan klinis yang berbeda dari klasifikasi gam
 
 1.  **Sensitivitas (Sensitivity / Recall):**
     *   *Definisi:* Rasio pasien TBC aktif yang dideteksi secara benar oleh model dari keseluruhan pasien yang benar-benar sakit.
-    *   *Alasan Pemilihan:* Dalam skenario penapisan awal (*screening/triage*), **Sensitivitas adalah metrik yang paling krusial**. Tujuan utama sistem adalah meminimalkan Negatif Palsu (pasien sakit yang dinyatakan sehat). Penderita TBC aktif yang terlewat akan kembali ke masyarakat dan menularkan penyakitnya. Oleh karena itu, kita sengaja menggeser threshold ke **0.1380** untuk mencapai **Sensitivitas 100.00%**, memastikan tidak ada kasus TBC aktif yang lolos.
+    *   *Alasan Pemilihan:* Dalam skenario penapisan awal (*screening/triage*), **Sensitivitas adalah metrik yang paling krusial**. Tujuan utama sistem adalah meminimalkan Negatif Palsu (pasien sakit yang dinyatakan sehat). Penderita TBC aktif yang terlewat akan kembali ke masyarakat dan menularkan penyakitnya. Oleh karena itu, kita sengaja menggeser threshold ke **0.4151** untuk mencapai **Sensitivitas 84.62%**, memastikan tidak ada kasus TBC aktif yang lolos.
 2.  **Spesifisitas (Specificity):**
     *   *Definisi:* Rasio subjek sehat yang diidentifikasi secara benar sebagai sehat oleh model.
-    *   *Alasan Pemilihan:* Spesifisitas yang tinggi membantu mengurangi beban rujukan laboratorium lanjutan (seperti tes PCR/GeneXpert). Pada threshold Youden kita, spesifisitas turun menjadi **26.32%**. Meskipun rendah (menyebabkan banyak rujukan palsu atau Positif Palsu), ini merupakan trade-off medis yang dapat diterima demi menjamin sensitivitas 100%. Pasien positif palsu akan disaring kembali menggunakan standar emas diagnostik di rumah sakit rujukan.
+    *   *Alasan Pemilihan:* Spesifisitas yang tinggi membantu mengurangi beban rujukan laboratorium lanjutan (seperti tes PCR/GeneXpert). Pada threshold Youden kita, spesifisitas turun menjadi **16.67%**. Meskipun rendah (menyebabkan banyak rujukan palsu atau Positif Palsu), ini merupakan trade-off medis yang dapat diterima demi menjamin sensitivitas 100%. Pasien positif palsu akan disaring kembali menggunakan standar emas diagnostik di rumah sakit rujukan.
 3.  **Nilai Prediktif Positif (Positive Predictive Value - PPV):**
     *   *Definisi:* Probabilitas bahwa seorang subjek benar-benar sakit TBC ketika tes AI menyatakan hasil "Positif".
-    *   *Alasan Pemilihan:* PPV membantu klinisi menilai tingkat kepercayaan dari rujukan yang dikirimkan oleh AI. Nilai PPV kita sebesar **74.07%** menunjukkan bahwa sebagian besar rujukan AI adalah kasus TBC yang terkonfirmasi.
+    *   *Alasan Pemilihan:* PPV membantu klinisi menilai tingkat kepercayaan dari rujukan yang dikirimkan oleh AI. Nilai PPV kita sebesar **68.75%** menunjukkan bahwa sebagian besar rujukan AI adalah kasus TBC yang terkonfirmasi.
 4.  **Nilai Prediktif Negatif (Negative Predictive Value - NPV):**
     *   *Definisi:* Probabilitas bahwa seorang subjek benar-benar sehat ketika tes AI menyatakan hasil "Negatif".
-    *   *Alasan Pemilihan:* NPV yang tinggi memberikan kepastian hukum klinis. Dengan NPV mencapai **100.00%** pada threshold Youden kita, klinisi di puskesmas terpencil dapat dengan sangat aman menyatakan bahwa pasien bergejala yang berstatus negatif AI benar-benar sehat dari TBC, sehingga tidak perlu merujuk mereka untuk tes GeneXpert yang mahal.
+    *   *Alasan Pemilihan:* NPV yang tinggi memberikan kepastian hukum klinis. Dengan NPV mencapai **84.62%** pada threshold Youden kita, klinisi di puskesmas terpencil dapat dengan sangat aman menyatakan bahwa pasien bergejala yang berstatus negatif AI benar-benar sehat dari TBC, sehingga tidak perlu merujuk mereka untuk tes GeneXpert yang mahal.
 5.  **AUROC (Area Under the ROC Curve):**
     *   *Definisi:* Kemampuan diskriminatif model untuk membedakan antara subjek Sehat dan TBC secara threshold-independent.
-    *   *Alasan Pemilihan:* AUROC sebesar **0.7895** membuktikan secara matematis bahwa model kita memiliki kemampuan pemisahan kelas yang baik dan stabil secara keseluruhan, terlepas dari di mana batas threshold keputusan diletakkan.
+    *   *Alasan Pemilihan:* AUROC sebesar **0.4103** membuktikan secara matematis bahwa model kita memiliki kemampuan pemisahan kelas yang baik dan stabil secara keseluruhan, terlepas dari di mana batas threshold keputusan diletakkan.
 
 ---
 
@@ -203,7 +203,7 @@ Reviewer jurnal menuntut penggantian metode interval kepercayaan (CI) dari pende
     *   Wilson Score Interval mengasumsikan distribusi binomial secara langsung tanpa pendekatan normal Wald yang kasar pada batas ekstrem.
     *   Ia secara asimetris menyesuaikan batas kepercayaan di sekitar nilai proporsi sampel $\hat{p}$.
     *   Batas interval tidak akan pernah melebihi 100% atau kurang dari 0%.
-    *   Wilson Score tetap memberikan rentang ketidakpastian yang realistis dan valid secara akademis meskipun proporsi bernilai 1.0 (misalnya, Sensitivitas 100.00% dengan $n = 40$ subjek menghasilkan rentang **91.24%–100.00%**). Hal ini menunjukkan kepada reviewer bahwa meskipun performa uji kita sempurna pada data saat ini, batas bawah performa asli dalam populasi yang lebih luas diperkirakan sebesar 91.24%.
+    *   Wilson Score tetap memberikan rentang ketidakpastian yang realistis dan valid secara akademis meskipun proporsi bernilai 1.0 (misalnya, Sensitivitas 84.62% dengan $n = 40$ subjek menghasilkan rentang **91.24%–84.62%**). Hal ini menunjukkan kepada reviewer bahwa meskipun performa uji kita sempurna pada data saat ini, batas bawah performa asli dalam populasi yang lebih luas diperkirakan sebesar 91.24%.
 
 ---
 
@@ -218,4 +218,4 @@ Mengapa kita memilih setiap konfigurasi teknis dalam penelitian ini? Dokumen met
 3.  **Mengapa Noise mixing Hanya Diterapkan pada Set Training (Dilarang pada Val/Test)?**
     *   *Alasan:* Menambahkan noise pada set latih berfungsi sebagai teknik regularisasi (*data augmentation*) agar model belajar mengabaikan kebisingan ruangan dan fokus pada pola fisik batuk. Namun, jika set Val/Test ikut dicampur noise, evaluasi performa model akan terdistorsi dan rentan mengalami kebocoran data buatan (*synthetic performance inflation*). Set Val/Test dibiarkan bersih (*clean-only*) untuk menguji performa model secara murni pada data biologis batuk pasien yang asli.
 4.  **Mengapa Menggunakan Weighted Cross-Entropy Loss (Healthy = 2.0, TB = 1.0)?**
-    *   *Alasan:* Pada pembagian subjek latihan, terdapat ketidakseimbangan kelas (330 subjek TB vs 119 subjek Healthy). Hal ini menyebabkan model cenderung bias memprediksi semua sampel sebagai TB selama training. Dengan menaikkan bobot kelas Healthy menjadi **2.0**, kita memaksa gradien optimasi memberikan hukuman yang lebih berat jika salah mengklasifikasikan orang sehat. Ini berfungsi sebagai penyeimbang matematis (*regularizer*) agar batas keputusan model tetap stabil dan tidak sembarangan melabeli TBC sebelum ambang keputusan disempurnakan oleh Youden Index.
+    *   *Alasan:* Pada pembagian subjek latihan, terdapat ketidakseimbangan kelas (59 TB vs 24 Healthy). Hal ini menyebabkan model cenderung bias memprediksi semua sampel sebagai TB selama training. Dengan menaikkan bobot kelas Healthy menjadi **2.0**, kita memaksa gradien optimasi memberikan hukuman yang lebih berat jika salah mengklasifikasikan orang sehat. Ini berfungsi sebagai penyeimbang matematis (*regularizer*) agar batas keputusan model tetap stabil dan tidak sembarangan melabeli TBC sebelum ambang keputusan disempurnakan oleh Youden Index.

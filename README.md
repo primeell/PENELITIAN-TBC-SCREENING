@@ -10,29 +10,29 @@ To ensure clinical viability, RespiScan addresses key methodological limitations
 
 ---
 
-## 📊 Performance Summary (Patient-Level Holdout Test, n = 59)
+## 📊 Performance Summary (Patient-Level Holdout Test, n = 31)
 
-The model is evaluated on an independent holdout test set containing 59 unseen subjects (40 TB patients, 19 Healthy controls) using direct confusion matrix metrics and **95% Wilson Score Confidence Intervals**:
+The model is evaluated on an independent holdout test set containing 31 unseen subjects (14 TB patients, 17 Healthy controls) using direct confusion matrix metrics and **95% Wilson Score Confidence Intervals**:
 
-| Diagnostic Metric | Default Threshold ($\theta = 0.50$) | Youden-Optimized Threshold ($\theta = 0.1380$) | Clinical Significance |
+| Diagnostic Metric | Default Threshold ($\theta = 0.50$) | Youden-Optimized Threshold ($\theta = 0.3595$) | Clinical Significance |
 | :--- | :---: | :---: | :--- |
-| **Patient Accuracy** | 71.19%<br>(95% CI: 58.62%–81.16%) | **76.27%**<br>(95% CI: 64.02%–85.31%) | Overall diagnostic correctness on unseen patients. |
-| **Sensitivity (Recall)** | 70.00%<br>(95% CI: 54.57%–81.93%) | **100.00%**<br>(95% CI: 91.24%–100.00%) | Triage rate (minimizes False Negatives / missed cases). |
-| **Specificity** | **73.68%**<br>(95% CI: 51.21%–88.19%) | **26.32%**<br>(95% CI: 11.81%–48.79%) | Selectivity rate (minimizes healthy referrals). |
-| **Positive Predictive Value (PPV)**| 84.85%<br>(95% CI: 69.08%–93.35%) | **74.07%**<br>(95% CI: 61.07%–83.88%) | Probability that a positive AI result is truly TB. |
-| **Negative Predictive Value (NPV)**| 53.85%<br>(95% CI: 35.46%–71.24%) | **100.00%**<br>(95% CI: 56.55%–100.00%) | Probability that a negative AI result is truly healthy. |
-| **Patient AUROC** | 0.7895 | 0.7895 | Threshold-independent discriminative capacity. |
+| **Patient Accuracy** | 77.42%<br>(95% CI: 60.19%–88.61%) | **87.10%**<br>(95% CI: 71.15%–94.87%) | Overall diagnostic correctness on unseen patients. |
+| **Sensitivity (Recall)** | 50.00%<br>(95% CI: 26.80%–73.20%) | **100.00%**<br>(95% CI: 78.47%–100.00%) | Triage rate (minimizes False Negatives / missed cases). |
+| **Specificity** | **100.00%**<br>(95% CI: 81.57%–100.00%) | **76.47%**<br>(95% CI: 52.74%–90.45%) | Selectivity rate (minimizes healthy referrals). |
+| **Positive Predictive Value (PPV)**| 100.00%<br>(95% CI: 64.57%–100.00%) | **77.78%**<br>(95% CI: 54.78%–91.00%) | Probability that a positive AI result is truly TB. |
+| **Negative Predictive Value (NPV)**| 70.83%<br>(95% CI: 50.83%–85.09%) | **100.00%**<br>(95% CI: 77.19%–100.00%) | Probability that a negative AI result is truly healthy. |
+| **Patient AUROC** | 0.9454 | 0.9454 | Threshold-independent discriminative capacity. |
 
 ---
 
 ## 🖼️ Publication Plots
 
 ### 1. Patient-Level Holdout Test ROC & Youden Calibration
-The decision threshold of **0.1380** was derived on the validation set using Youden's Index ($J = \text{TPR} - \text{FPR}$) to maximize sensitivity for a triage pre-screening setup.
+The decision threshold of **0.3595** was derived on the validation set using Youden's Index ($J = \text{TPR} - \text{FPR}$) to maximize sensitivity for a triage pre-screening setup.
 ![ROC Curve](Fig1_ROC_Patient_Optimized.png)
 
 ### 2. Youden-Optimized Confusion Matrix
-At $\theta = 0.1380$, the system achieves 100.00% Sensitivity (FN = 0), capturing all 40 active TB patients in the holdout test cohort.
+At $\theta = 0.3595$, the system achieves 100.00% Sensitivity (FN = 0), capturing 14 active TB patients in the holdout test cohort.
 ![Confusion Matrix](Fig_Confusion_Matrix_Patient.png)
 
 ### 3. Latent Feature Space t-SNE Clustering
@@ -78,7 +78,7 @@ pip install -r requirements.txt
 
 ### 2. Run Pipeline Notebooks
 Follow the numerical sequence of Jupyter notebooks in the root directory:
-* Run `1_Data_Standardization_and_Acoustic_Preprocessing.ipynb` to process raw audio databases (Coswara/TBscreen) into mono, 44.1 kHz, 1-second wav files, and save CWT scalograms as 224x224 images.
+* Run `1_Data_Standardization_and_Acoustic_Preprocessing.ipynb` to process raw audio databases (Coswara/TBscreen) into mono, 16 kHz, 1-second wav files, and save CWT scalograms as 224x224 images.
 * Run `2_MobileNetV2_Scalogram_Training_and_Clinical_Evaluation.ipynb` to train MobileNetV2, perform validation-level decision thresholding, and test on the holdout partition.
 
 ---

@@ -1,15 +1,77 @@
-# Folder dataset
-/datasets/
-/data/
+# ==========================================
+# RespiScan Project GitIgnore Rules
+# ==========================================
 
-# Format file besar
-*.zip
-*.rar
-*.csv
-*.mp3
+# 1. Dataset & Audio Files (Wajib Dikecualikan)
+/dataset_tbc/
+/bulk_audio/
+/RespiScan_Final_Dataset/
+/RespiScan_Train_Ready/
+/RespiScan_MFCC_Only/
+/RespiScan_Features/
+/dataset_respiscan_local/
+/metadata_databaru/
+/ntb_bulk_10k/
+/Dataset_Unused_Backup/
+/public_dataset/
+/Coswara-Data/
 *.wav
-*.json
-# Folder environment (python)
-venv/
+*.mp3
+*.pt
+*.bin
+!/RespiScanMobile/app/src/main/assets/wavelet_filters.bin
+
+# 2. Large Binary Model Weights (pth & onnx di root)
+/*.pth
+/*.onnx
+/*.onnx.data
+# Kecualikan model ONNX di folder assets Android agar aplikasi mobile langsung bekerja
+!/RespiScanMobile/app/src/main/assets/best_RespiScan_FocalLoss.onnx
+
+# 3. Large CSV & Metadata files (kecuali Metadata.csv utama)
+/Passive_coughs.csv
+/verified_metadata.csv
+/Forced_coughs.csv
+/Dataset_key.xlsx
+/Metadata_backup.csv
+/augmentation_audit.csv
+/dataset_split_summary.csv
+/subject_leakage_check.csv
+
+# 4. Python & OS Temp Files
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
 .env
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+*.log
+
+# 5. Git Large Archives
+*.zip
+*.tar
+*.gz
+*.rar
+*.7z
+/zip_files_list.txt
+
+# 6. Android Build Artifacts (RespiScanMobile)
+/RespiScanMobile/.gradle/
+/RespiScanMobile/build/
+/RespiScanMobile/app/build/
+/RespiScanMobile/local.properties
+/RespiScanMobile/.kotlin/
+/RespiScanMobile/app/libs/
+.navigation/
+captures/
+
+# 7. Local Scratch Scripts (Skrip Uji Coba Pribadi)
+/print_cell_*.py
+/print_cells_*.py
+/inspect_cells*.py
+/notebook_dumper.py
