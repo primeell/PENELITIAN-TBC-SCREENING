@@ -15,6 +15,9 @@
 /Dataset_Unused_Backup/
 /public_dataset/
 /Coswara-Data/
+/DKITCHEN/
+/NPARK/
+/OHALLWAY/
 *.wav
 *.mp3
 *.pt
