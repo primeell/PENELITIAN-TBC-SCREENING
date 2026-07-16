@@ -18,7 +18,7 @@ for split in splits:
         if os.path.exists(cls_path):
             for filename in os.listdir(cls_path):
                 # Extract the base subject ID (e.g., PID_10C from PID_10C10_clean.png or similar)
-                match = re.search(r'(PID_\d+[AC])', filename)
+                match = re.search(r'(PID_\d+[AC]|COSWARA_[A-Za-z0-9]+)', filename)
                 if match:
                     subj_base = match.group(1)
                     split_real_subjects[split].add(subj_base)

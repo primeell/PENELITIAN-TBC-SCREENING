@@ -78,3 +78,7 @@ captures/
 /print_cells_*.py
 /inspect_cells*.py
 /notebook_dumper.py
+
+# 8. Temporary notebook dumps & Scratch Folder
+/scratch/
+*dump*.txt
