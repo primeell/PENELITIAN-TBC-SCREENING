@@ -1,97 +1,126 @@
-# RespiScan: Environmentally Robust Tuberculosis Screening from Cough Acoustics
+# RespiScan
 
-RespiScan is a lightweight, edge-compatible deep learning framework designed to screen for Tuberculosis (TB) using cough acoustic signatures. By converting 1D audio signals into 2D Continuous Wavelet Transform (CWT) scalograms and applying a fine-tuned MobileNetV2 architecture, the system extracts pathological respiratory biomarkers while minimizing environmental noise and processing bias.
+**Research-stage tuberculosis triage from cough acoustics, with a mobile and edge-AI implementation.**
 
-To ensure clinical viability, RespiScan addresses key methodological limitations in existing literature by enforcing:
-1. **Strict Subject-Level Splitting:** Guaranteeing zero speaker leakage between train, validation, and test sets.
-2. **Consistent CWT Preprocessing:** Standardizing all inputs using complex Morlet wavelets (`cmor1.5-1.0`) to eliminate toolchain processing bias.
-3. **Class-Balanced Environmental Noise Mixing:** Training with real-world noise backgrounds at 10 dB SNR to build robustness for outpatient clinics.
-4. **Clinical Decision Boundary Calibration:** Calibrating decision thresholds via validation-derived Youden's Index to prioritize high screening sensitivity.
+RespiScan transforms short cough recordings into Continuous Wavelet Transform (CWT) scalograms and evaluates them with a MobileNetV2 model. The project is designed as **decision support for research-stage triage**, not as a diagnostic device and not as a replacement for clinical assessment, microbiology, radiology, or clinician judgement.
 
----
+> **Clinical-use notice** — The final evidence is an internal 31-subject holdout evaluation. The system has no prospective external validation and must not be represented as clinically ready or used as a stand-alone diagnostic tool.
 
-## 📊 Performance Summary (Patient-Level Holdout Test, n = 31)
+## At a glance
 
-The model is evaluated on an independent holdout test set containing 31 unseen subjects (14 TB patients, 17 Healthy controls) using direct confusion matrix metrics and **95% Wilson Score Confidence Intervals**:
+| Item | Final locked value |
+|---|---|
+| Cohort and split | 198 subjects; 137 train / 30 validation / 31 internal holdout |
+| Model | ImageNet-pretrained MobileNetV2; 512-unit ReLU + Dropout 0.5 classifier |
+| Training loss | Corrected weighted focal loss, gamma = 2.0 |
+| Selected class weights | Non-TB : TB = **1.5 : 1.0** |
+| Patient-level aggregation | Arithmetic mean of valid cough-level TB scores |
+| Decision threshold | **0.424084**, selected on validation with Youden index before holdout evaluation |
+| Internal holdout AUROC | **0.8866** (95% CI 0.7479–0.9832) |
+| Internal holdout sensitivity / specificity | **71.43% / 82.35%** |
+| Internal holdout confusion matrix | TN = 14, FP = 3, FN = 4, TP = 10 |
 
-| Diagnostic Metric | Default Threshold ($\theta = 0.50$) | Youden-Optimized Threshold ($\theta = 0.3595$) | Clinical Significance |
-| :--- | :---: | :---: | :--- |
-| **Patient Accuracy** | 77.42%<br>(95% CI: 60.19%–88.61%) | **87.10%**<br>(95% CI: 71.15%–94.87%) | Overall diagnostic correctness on unseen patients. |
-| **Sensitivity (Recall)** | 50.00%<br>(95% CI: 26.80%–73.20%) | **100.00%**<br>(95% CI: 78.47%–100.00%) | Triage rate (minimizes False Negatives / missed cases). |
-| **Specificity** | **100.00%**<br>(95% CI: 81.57%–100.00%) | **76.47%**<br>(95% CI: 52.74%–90.45%) | Selectivity rate (minimizes healthy referrals). |
-| **Positive Predictive Value (PPV)**| 100.00%<br>(95% CI: 64.57%–100.00%) | **77.78%**<br>(95% CI: 54.78%–91.00%) | Probability that a positive AI result is truly TB. |
-| **Negative Predictive Value (NPV)**| 70.83%<br>(95% CI: 50.83%–85.09%) | **100.00%**<br>(95% CI: 77.19%–100.00%) | Probability that a negative AI result is truly healthy. |
-| **Patient AUROC** | 0.9454 | 0.9454 | Threshold-independent discriminative capacity. |
+## Final research workflow
 
----
+The final configuration was chosen through validation-only class-weight ablation, locked before test evaluation, and then assessed once on the internal holdout.
 
-## 🖼️ Publication Plots
+![Locked RespiScan workflow](assets/figures/workflow.png)
 
-### 1. Patient-Level Holdout Test ROC & Youden Calibration
-The decision threshold of **0.3595** was derived on the validation set using Youden's Index ($J = \text{TPR} - \text{FPR}$) to maximize sensitivity for a triage pre-screening setup.
-![ROC Curve](Fig1_ROC_Patient_Optimized.png)
+<details>
+<summary><strong>How to read the result</strong></summary>
 
-### 2. Youden-Optimized Confusion Matrix
-At $\theta = 0.3595$, the system achieves 100.00% Sensitivity (FN = 0), capturing 14 active TB patients in the holdout test cohort.
-![Confusion Matrix](Fig_Confusion_Matrix_Patient.png)
+- **AUROC** describes discrimination across thresholds.
+- **Sensitivity and specificity** above use the single validation-derived threshold of 0.424084.
+- The reported holdout is **internal** and small; confidence intervals are therefore wide.
+- A model score is not a calibrated clinical probability and should not be interpreted as one.
+</details>
 
-### 3. Latent Feature Space t-SNE Clustering
-Visualizing the 1280-dimensional global average pooling features using t-SNE reveals an **observable clustering tendency** and partial visual separation between Healthy controls (green) and TB patients (red).
-![t-SNE Projection](Fig_tSNE_Acoustic_Clusters.png)
+## What is in this repository?
 
-### 4. Training and Validation Learning Curves
-The training loss shows stable convergence, with validation-level AUROC monitored to trigger early stopping at epoch 12.
-![Learning Curves](Fig3_Training_Validation_Curves.png)
-
----
-
-## 📁 Repository Structure
-
-```
-├── 1_Data_Standardization_and_Acoustic_Preprocessing.ipynb  # Audio standardization & CWT extraction
-├── 2_MobileNetV2_Scalogram_Training_and_Clinical_Evaluation.ipynb # Training, Youden tuning & testing
-├── 3_Dual_Branch_Feature_Fusion_Model_Training.ipynb        # Multi-modal fusion experiments
-├── 4_Ablation_Study_Focal_Loss_and_Feature_Cleaning.ipynb    # Loss function & feature investigations
-├── 5_Comparative_Analysis_ResNet18_vs_MobileNetV2.ipynb     # Model benchmark vs ResNet18
-├── Fig1_ROC_Patient_Optimized.png                           # Patient-level ROC plot
-├── Fig_Confusion_Matrix_Patient.png                         # Youden confusion matrix heatmap
-├── Fig_tSNE_Acoustic_Clusters.png                           # 2D t-SNE feature cluster plot
-├── Fig3_Training_Validation_Curves.png                      # Training history curves
-├── journal_draft_respiscan.md                               # Complete manuscript draft
-├── clinical_evaluation_report.md                            # Clinical metrics reference guide
-├── metodologi_lengkap_respiscan.md                         # Detailed methodology manual (ID)
-├── modelbuild.py                                            # Backbone architecture definitions
-├── requirements.txt                                         # Python dependency file
-└── best_RespiScan_MobileNetV2_Scalogram.pth                 # Best MobileNetV2 PyTorch weights (11.7 MB)
+```text
+.
+├── RespiScanMobile/                  Android app, TARA UI, and edge/IoT implementation
+├── PAKET_REVISI_JURNAL_RESPISCAN/    Curated manuscript-revision package and final figures
+├── reviewer_revision_outputs/        Auditable experiment outputs, locks, scripts, and reports
+├── 1_...ipynb to 5_...ipynb          Historical exploration and development notebooks
+├── run_pipeline_leak_free.py          Subject-disjoint research pipeline
+├── prepare_kaggle_dataset.py          Dataset preparation helper
+├── docs/                              Start here for workflow, app, reproducibility, and release guidance
+└── README.md                          Project overview and final-result summary
 ```
 
----
+The notebooks and several files at repository root document development history. They are **not** the source of the final claims. Use the locked artifacts and reports listed below when reviewing the final model.
 
-## ⚙️ Installation & Execution
+## Start here
 
-### 1. Clone Repository & Setup Environment
-```bash
-git clone https://github.com/primeell/PENELITIAN-TBC-SCREENING.git
-cd PENELITIAN-TBC-SCREENING
-pip install -r requirements.txt
+| Goal | Recommended document |
+|---|---|
+| Understand the research question, methodology, results, and limitations | [Research workflow](docs/RESEARCH_WORKFLOW.md) |
+| Install or build the Android RespiScan application | [Mobile application guide](docs/MOBILE_APPLICATION.md) |
+| Reproduce or audit the final selection and evaluation | [Reproducibility guide](docs/REPRODUCIBILITY.md) |
+| Navigate the repository and distinguish final vs. historical files | [Repository map](docs/REPOSITORY_MAP.md) |
+| Publish an installable APK professionally through GitHub Releases | [Release checklist](docs/RELEASE_CHECKLIST.md) |
+
+## Android application
+
+The current mobile build is **RespiScan v2.3.0 — Cough Gate**. It contains the locked ONNX model, the 0.424084 decision threshold, multi-cough averaging, and a conservative pre-inference recording-quality gate.
+
+The APK should be distributed as a **GitHub Release asset**, not committed into source history. This keeps the source repository lightweight and makes the download path clear for users. Full installation, integrity, and build instructions are available in the [mobile application guide](docs/MOBILE_APPLICATION.md).
+
+## Edge and IoT demonstration
+
+The repository also contains an optional offline-first deployment called **TARA / SAPA-TB**:
+
+```text
+Touch display + microphone → Radxa ROCK 4 SE → local CWT + ONNX inference
+                                      ├── SQLite store-and-forward
+                                      ├── ESP32/TFT status display
+                                      └── laptop monitoring dashboard
 ```
 
-### 2. Run Pipeline Notebooks
-Follow the numerical sequence of Jupyter notebooks in the root directory:
-* Run `1_Data_Standardization_and_Acoustic_Preprocessing.ipynb` to process raw audio databases (Coswara/TBscreen) into mono, 16 kHz, 1-second wav files, and save CWT scalograms as 224x224 images.
-* Run `2_MobileNetV2_Scalogram_Training_and_Clinical_Evaluation.ipynb` to train MobileNetV2, perform validation-level decision thresholding, and test on the holdout partition.
+Inference remains local on the edge node; MQTT transports metadata only. See [RespiScanMobile/README.md](RespiScanMobile/README.md) for the node architecture and [deployment documentation](RespiScanMobile/docs/DEPLOYMENT_RUNBOOK.md) for setup.
 
----
+## Engineering highlights
 
-## 🔬 Model Specifications
-* **Architecture:** MobileNetV2 (ImageNet pre-trained backbone, customized fully-connected classifier head with Dropout $p=0.5$).
-* **Model Size:** 11.7 MB (standard float32 PyTorch weights).
-* **Parameters:** 2.2 Million.
-* **Loss Function:** Weighted Cross-Entropy (Healthy weight: 2.0, TB weight: 1.0).
-* **Optimizers:** Adam (Backbone Learning Rate: $10^{-5}$, Classifier Head Learning Rate: $10^{-4}$).
+- **Reproducible ML decisions:** patient-disjoint split, validation-only configuration selection, and immutable threshold/model locks.
+- **On-device inference:** Android ONNX runtime with CWT preprocessing and multi-cough score aggregation.
+- **Input-quality controls:** a conservative recording-quality gate before model inference, with documented scope and limitations.
+- **Edge deployment:** offline-first Radxa workflow with local SQLite persistence, MQTT synchronization, ESP32 display, and a laptop operations dashboard.
+- **Traceable research communication:** final figures, reviewer-response trail, technical audits, and explicit limitations are linked from this repository.
 
----
+## Final figures
 
-## 📝 Authors & Citation
-* **G. E. F.** - Conceptualization, preprocessing, model development, evaluation, and draft writing.
-* **H. P.** - Supervision, methodology validation, manuscript review.
+| Workflow | Internal-holdout ROC |
+|---|---|
+| ![Workflow overview](assets/figures/workflow.png) | ![Internal-holdout ROC](assets/figures/internal-holdout-roc.png) |
+
+| Training curves | Internal-holdout confusion matrix |
+|---|---|
+| ![Training curves](assets/figures/training-curves.png) | ![Confusion matrix](assets/figures/internal-holdout-confusion-matrix.png) |
+
+## Evidence trail
+
+The manuscript revision is organized into four auditable stages:
+
+1. **Data and baseline audit** — subject split, leakage prevention, preprocessing, augmentation, and historical-code audit.
+2. **Class-weight selection** — restricted A/B/C ablation on validation only; configuration C selected and locked.
+3. **Robustness and bias analysis** — bootstrap confidence intervals, multi-seed validation, source-domain analysis, error analysis, and calibration audit.
+4. **Manuscript and reviewer revision** — consistency audit, final figures, and point-by-point reviewer responses.
+
+Read [the revision-package index](PAKET_REVISI_JURNAL_RESPISCAN/REPORT_INDEKS_TAHAP_1_SAMPAI_4.md) for the complete trail. The final configuration and performance table are also summarized in the [resubmission readiness report](reviewer_revision_outputs/RESUBMISSION_READINESS_REPORT.md).
+
+## Key limitations
+
+- Internal holdout is limited to 31 subjects; performance uncertainty remains substantial.
+- Acquisition source and disease label are partially confounded in the available data.
+- No prospective, external, multi-site, or clinical workflow validation has been performed.
+- The mobile Cough Gate is a signal-based quality screen, **not** a clinically validated cough detector.
+- Use is limited to research, engineering demonstration, and future validation work.
+
+## Project status
+
+The analytical revision package is internally consistent and ready for resubmission after author, affiliation, contribution, conflict-of-interest, and final comparison-table checks are confirmed. See [the readiness report](reviewer_revision_outputs/RESUBMISSION_READINESS_REPORT.md) for the exact remaining manual checks.
+
+## Citation and contact
+
+If you build on this work, please contact the repository owner before citing or redistributing the model, application, or research artifacts. A formal citation record should be added after the manuscript’s author list and publication details are finalized.

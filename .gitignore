@@ -14,6 +14,7 @@
 /ntb_bulk_10k/
 /Dataset_Unused_Backup/
 /public_dataset/
+/Kaggle_RespiScan_Dataset/
 /Coswara-Data/
 /DKITCHEN/
 /NPARK/
@@ -54,6 +55,9 @@ venv/
 .DS_Store
 Thumbs.db
 *.log
+*.db
+*.db-shm
+*.db-wal
 
 # 5. Git Large Archives
 *.zip
@@ -70,6 +74,7 @@ Thumbs.db
 /RespiScanMobile/local.properties
 /RespiScanMobile/.kotlin/
 /RespiScanMobile/app/libs/
+/RespiScanMobile/*.apk
 .navigation/
 captures/
 
